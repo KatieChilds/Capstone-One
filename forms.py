@@ -1,6 +1,6 @@
 """Forms for Fridge Raiders app (CAPSTONE ONE)."""
 
-from wtforms import SelectField, StringField, EmailField, URLField, PasswordField, SelectMultipleField, IntegerField, BooleanField
+from wtforms import SelectField, StringField, EmailField, URLField, PasswordField, SelectMultipleField, IntegerField, BooleanField, RadioField
 from flask_wtf import FlaskForm
 from wtforms.validators import InputRequired, Optional, NumberRange
 
@@ -32,6 +32,11 @@ class LoginForm(FlaskForm):
 
 class ByIngredientsForm(FlaskForm):
     """Form for user to find recipes using findByIngredients."""
+    ingredients = StringField("What ingredients do you have?",
+                              validators=[InputRequired()])
+    ranking = RadioField("Choose One:", choices=[(
+        1, "Maximize used ingredients"), (2, "Minimize missing ingredients")], coerce=int, validators=[InputRequired()])
+    number = IntegerField("Number of Recipes to View", default=5)
 
 
 class ComplexSearchForm(FlaskForm):

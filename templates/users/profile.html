@@ -1,0 +1,48 @@
+{% extends 'base.html' %}{% block title %}User Profile{%
+endblock %} {% block content %}
+<h3 class="text-center">{{user.username}}</h3>
+<div class="row">
+  <div class="col">
+    <img
+      src="{{user.image_url}}"
+      alt="User's profile picture."
+    />
+  </div>
+  <div class="col">
+    <h5>Details:</h5>
+    <ul class="list-group">
+      <li class="list-group-item">
+        First Name: {{user.first_name}}
+      </li>
+      <li class="list-group-item">
+        Last Name: {{user.last_name}}
+      </li>
+      <li class="list-group-item">Email: {{user.email}}</li>
+    </ul>
+    <br />
+    <a
+      href="/user/{{g.user.id}}/update"
+      class="btn btn-primary"
+      >Update Details</a
+    >
+  </div>
+  {% if preferences %}
+  <div class="col">
+    <h5>Preferences:</h5>
+    <ul class="list-group">
+      {% for item in preferences %}
+      <li class="list-group-item">
+        {{item}}: {{preferences[item]}}
+      </li>
+      {% endfor %}
+    </ul>
+    <br />
+    <a
+      href="/user/{{g.user.id}}/preferences"
+      class="btn btn-primary"
+      >Update Preferences</a
+    >
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

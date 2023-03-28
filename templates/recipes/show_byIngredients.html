@@ -1,0 +1,76 @@
+{% extends 'base.html' %} {% block title %}Show Recipes from
+byIngredients Search{% endblock %} {% block content %}
+<h2 class="text-center">
+  Your Recipes from
+  <span class="text-primary"
+    >Fridge Raiders <i class="fa-solid fa-carrot"></i
+  ></span>
+</h2>
+<p class="text-info text-center">
+  <i
+    >Click on an ingredient you are missing to find
+    alternatives.</i
+  >
+</p>
+<br />
+<div class="container">
+  {% for recipe in recipes %}
+  <div class="row">
+    <div class="col">
+      <img
+        src="{{recipe['image']}}"
+        alt="No description available."
+      />
+    </div>
+    <div class="col">
+      <h5 class="mt-0 mb-1">
+        <a href="/recipes/{{recipe['id']}}"
+          >{{recipe['title']}}</a
+        >
+      </h5>
+      How many of your ingredients are used?
+      <span class="text-secondary"
+        >{{recipe['usedIngredientCount']}}</span
+      >
+      <br />
+      How many ingredients are you missing?
+      <span class="text-secondary"
+        >{{recipe['missedIngredientCount']}}</span
+      >
+      <br />
+      Number of likes:
+      <span class="text-secondary"
+        >{{recipe['likes']}}</span
+      >
+      <br />
+    </div>
+    <div class="col">
+      <h6 class="text-secondary">
+        Which ingredients are you missing?
+      </h6>
+      <ul>
+        {% for ingredient in recipe['missedIngredients'] %}
+        <a href="/ingredient/{{ingredient['id']}}"
+          ><li>
+            {{ingredient['name']}}: {{ingredient['amount']}}
+            {{ingredient['unit']}}
+          </li></a
+        >
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col">
+      <h6 class="text-secondary">
+        Which ingredients aren't being used?
+      </h6>
+      <ul>
+        {% for ingredient in recipe['unusedIngredients'] %}
+        <li>{{ingredient['name']}}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <br />
+  {% endfor %}
+</div>
+{% endblock %}

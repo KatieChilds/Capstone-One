@@ -1,0 +1,31 @@
+{% extends 'base.html' %} {% block title %}By Ingredients
+Search Form{% endblock %} {% block content %}
+
+<h2 class="text-center">What's in your fridge?</h2>
+<h4 class="text-center text-secondary">
+  Fill in the form below to search the
+  <span class="text-primary"
+    >Fridge Raiders <i class="fa-solid fa-carrot"></i
+  ></span>
+  recipe box
+</h4>
+<br />
+<form method="POST">
+  {{form.hidden_tag()}} {{form.ingredients.label}}
+  {{form.ingredients(class_="form-control")}}
+  {{form.ranking.label}} {% for subfield in form.ranking %}
+  <tr>
+    <td>{{subfield}}</td>
+    <td>{{subfield.label}}</td>
+  </tr>
+  {% endfor %}
+  <br />{{form.number.label}}
+  {{form.number(class_="form-control")}} {% for field in
+  form if field.widget.input_type != 'hidden' %} {% for
+  error in field.errors %}
+  <span class="text-danger">{{error}}</span> {% endfor %} {%
+  endfor %}
+  <br />
+  <button class="btn btn-primary">SEARCH</button>
+</form>
+{% endblock %}

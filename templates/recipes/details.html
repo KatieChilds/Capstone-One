@@ -31,4 +31,9 @@ Recipe Details{% endblock %} {% block content %}
     <p>{{recipe['instructions']}}</p>
   </div>
 </div>
+<a
+  href="/recipes/{{recipe['id']}}/similar"
+  class="btn btn-secondary"
+  >Show Similar Recipes</a
+>
 {% endblock %}

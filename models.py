@@ -84,7 +84,7 @@ class Preference(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey(
         "users.id", ondelete="cascade"), primary_key=True)
-    preferences = db.Column(db.PickleType)
+    preferences = db.Column(db.JSON)
 
     def __repr__(self):
         """Define representation for Preference instance."""

@@ -11,7 +11,11 @@ Search{% endblock %} {% block content %}
 {% for recipe in recipes %}
 <div class="card text-white bg-primary" style="width: fit-content;">
     <h5 class="card-header">{{recipe['title']}}</h5>
+    {% if recipe['image'] %}
     <img src="{{recipe['image']}}" class="card-img" alt="No description available.">
+    {% else %}
+    <img src="https://spoonacular.com/recipeImages/{{recipe['id']}}-240x150.{{recipe['imageType']}}" alt="No description available.">
+    {% endif %}
     <div class="card-footer">
       <a href="/recipes/{{recipe['id']}}" class="card-link text-white">Go to Recipe</a>
     </div>

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}{% block title %}Substitute
+Ingredients{% endblock %} {% block content %}
+<h2 class="text-center">
+  Possible Ingredient Substitutions
+</h2>
+{% if substitutes['status'] == 'failure' %}
+<p class="text-center border-secondary">
+  {{substitutes['message']}}
+</p>
+{% else %}
+<h5>Subtitutes for: {{substitutes['ingredient']}}</h5>
+<ul>
+  {% for item in substitutes['substitutes'] %}
+  <li>{{item}}</li>
+  {% endfor %}
+</ul>
+{% endif %} {% endblock %}
