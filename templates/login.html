@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block title %}Fridge Raiders
+Login Page{% endblock %} {% block content %}
+<h2 class="text-center">
+  Welcome back to
+  <span class="text-primary"
+    >Fridge Raiders <i class="fa-solid fa-carrot"></i
+  ></span>
+</h2>
+<h5 class="text-secondary text-center">Login below</h5>
+<br />
+<form method="POST">
+  {{form.hidden_tag()}} {% for field in form if
+  field.widget.input_type != 'hidden' %}
+  {{field.label}}{{field(class_="form-control")}} {% for
+  error in field.errors %}
+  <span class="text-danger">{{error}}</span> {% endfor %} {%
+  endfor %}
+  <br />
+  <button class="btn btn-primary">LOGIN</button>
+</form>
+{% endblock %}

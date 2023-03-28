@@ -1,0 +1,34 @@
+{% extends 'base.html' %} {% block title %}Show Chosen
+Recipe Details{% endblock %} {% block content %}
+<h2 class="text-center">{{recipe['title']}}</h2>
+<img
+  src="{{recipe['image']}}"
+  alt="No description available."
+  class="rounded mx-auto d-block"
+/>
+<p class="text-secondary text-center">
+  Source URL:
+  <a href="{{recipe['sourceUrl']}}"
+    >{{recipe['sourceUrl']}}</a
+  >
+</p>
+<div class="card border-primary">
+  <div class="card-body">
+    <p>{{recipe['summary']}}</p>
+  </div>
+</div>
+<br />
+<h5>Ingredients:</h5>
+<ul class="list-group list-group-flush">
+  {% for ingredient in recipe['extendedIngredients'] %}
+  <li class="list-group-item">
+    {{ingredient['original']}}
+  </li>
+  {% endfor %}
+</ul>
+<div class="card border-primary">
+  <div class="card-body">
+    <p>{{recipe['instructions']}}</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %} {% block title %}Fridge Raiders
+Homepage{% endblock %} {% block content %}
+
+<h1 class="text-center">
+  Welcome to Fridge Raiders
+  <i class="fa-solid fa-carrot"></i>
+</h1>
+<p class="text-primary text-center">
+  Are you bored of being asked what's for dinner every
+  night? <br />
+  What about tired of wasting food all the time?
+  <br />
+  <strong>Fridge Raiders is here to help!</strong>
+</p>
+<p class="text-center">
+  <a href="/signup"><strong>Signup</strong></a> to access
+  our full features or
+  <a href="/login"><strong>login</strong></a> in if you are
+  already a member.
+  <br />
+  <em>Don't want to sign up?!</em> You can still
+  <a
+    class="text-info"
+    href="/recipes/search"
+    >search for recipes!</a
+  >
+</p>
+
+<div class="container px-4 text-center">
+  <div class="row gx-5">
+    <div class="col">
+      <div class="p-3">
+        <h3 class="text-primary">What's in your Fridge?</h3>
+        <img
+          src="/static/fridge.png"
+          alt="Image of a refrigerator"
+          width="460px"
+          height="460px"
+        />
+        <p class="text-secondary">
+          Enter the ingredients in your fridge to search for
+          recipes that use them so you can stop wasting
+          food! <br />
+          <strong
+            ><a
+              class="text-secondary"
+              href="/signup"
+              ><u>Signup</u></a
+            >
+            to use this feature</strong
+          >
+        </p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="p-3">
+        <h3 class="text-primary">Search for Recipes</h3>
+        <img
+          src="/static/cook.png"
+          alt="Image of a cook thinking"
+          width="460px"
+          height="460px"
+        />
+        <p class="text-info">
+          <strong
+            >Search for recipes in our database.</strong
+          >
+          <br />
+          Features include searching by cuisine,
+          intolerances, favourite ingredients or ones to
+          keep out! <br />
+          No need to signup for this feature -
+          <a href="/recipes/search">start searching!</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

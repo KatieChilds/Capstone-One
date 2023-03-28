@@ -1,0 +1,38 @@
+{% extends 'base.html' %} {% block title %}Complex Search
+Form{% endblock %} {% block content %}
+
+<h2 class="text-center">
+  Fill in the form below to search the
+  <span class="text-primary"
+    >Fridge Raiders <i class="fa-solid fa-carrot"></i
+  ></span>
+  recipe box
+</h2>
+<br />
+<form method="POST">
+  {{form.hidden_tag()}} {{form.cuisine.label}}
+  {{form.cuisine(size=3, multiple=True,
+  class_="form-control")}} {{form.diet.label}}
+  {{form.diet(size=3, multiple=True,
+  class_="form-control")}} {{form.intolerances.label}}
+  {{form.intolerances(size=3, multiple=True,
+  class_="form-control")}} {{form.includeIngredients.label}}
+  {{form.includeIngredients(class_="form-control")}}
+  {{form.excludeIngredients.label}}
+  {{form.excludeIngredients(class_="form-control")}}
+  {{form.maxReadyTime.label}}
+  {{form.maxReadyTime(class_="form-control")}}
+  {{form.number.label}}
+  {{form.number(class_="form-control")}}
+  <br />
+  {% if g.user %} {{form.save(class_="form-check-input")}}
+  {{form.save.label(class_="form-check-label")}} {% endif %}
+  {% for field in form if field.widget.input_type !=
+  'hidden' %} {% for error in field.errors %}
+  <span class="text-danger">{{error}}</span> {% endfor %} {%
+  endfor %}
+  <br />
+  <button class="btn btn-primary">SEARCH</button>
+</form>
+
+{% endblock %}
