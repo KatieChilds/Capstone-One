@@ -1,6 +1,9 @@
 """Models for Fridge Raiders app (CAPSTONE ONE)."""
 
 from flask_sqlalchemy import SQLAlchemy
+# from sqlalchemy.ext.mutable import MutableDict
+# from sqlalchemy import JSON
+# from sqlalchemy.dialects.postgresql import HSTORE
 from flask_bcrypt import Bcrypt
 from flask import request
 import requests
@@ -24,6 +27,7 @@ class User(db.Model):
                           default="/static/no-image.png")
     password = db.Column(db.Text, nullable=False)
     hash = db.Column(db.Text, nullable=False)
+    api_username = db.Column(db.Text, nullable=False)
 
     recipes = db.relationship("Recipe", backref="user")
     preferences = db.relationship("Preference", backref="user")
@@ -40,9 +44,10 @@ class User(db.Model):
             "username": username, "firstName": first_name, "lastName": last_name, "email": email})
         data = res.json()
         hash = data['hash']
+        api_username = data['username']
 
         user = User(username=username, first_name=first_name, last_name=last_name,
-                    email=email, image_url=image_url, password=hashed_pwd, hash=hash)
+                    email=email, image_url=image_url, password=hashed_pwd, hash=hash, api_username=api_username)
 
         db.session.add(user)
 
@@ -68,8 +73,8 @@ class Recipe(db.Model):
     __tablename__ = "recipes"
 
     user_id = db.Column(db.Integer, db.ForeignKey(
-        "users.id", ondelete="cascade"), primary_key=True)
-    recipe_id = db.Column(db.Integer, nullable=False)
+        "users.id", ondelete="cascade"))
+    recipe_id = db.Column(db.Integer, nullable=False, primary_key=True)
     favourite = db.Column(db.Boolean, default=False)
 
     def __repr__(self):

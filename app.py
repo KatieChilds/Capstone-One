@@ -3,7 +3,7 @@ import requests
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Recipe, Preference
-from forms import RegisterForm, LoginForm, ByIngredientsForm, ComplexSearchForm
+from forms import RegisterForm, LoginForm, ByIngredientsForm, ComplexSearchForm, UpdateUserForm, UpdatePreferencesForm
 from secret import API_KEY
 from bs4 import BeautifulSoup
 
@@ -65,6 +65,7 @@ def signup():
 
     if form.validate_on_submit():
         try:
+
             user = User.signup(
                 username=form.username.data,
                 first_name=form.first_name.data,
@@ -124,7 +125,11 @@ def show_user_profile(user_id):
     user = User.query.get_or_404(user_id)
     preferences = Preference.query.filter(
         Preference.user_id == user_id).first()
-    return render_template('users/profile.html', user=user, preferences=preferences.preferences)
+    if preferences != None:
+        preferences = preferences.preferences
+    else:
+        preferences = {"Notice": "No saved preferences."}
+    return render_template('users/profile.html', user=user, preferences=preferences)
 
 
 # *********************************************************************** #
@@ -183,8 +188,10 @@ def get_recipe(recipe_id):
     res = requests.get(
         f"{API_BASE_URL}recipes/{recipe_id}/information", params={'apiKey': API_KEY})
     recipe = res.json()
+    if g.user:
+        saved_recipes = Recipe.query.filter_by(user_id=g.user.id).all()
 
-    return render_template('recipes/details.html', recipe=recipe)
+    return render_template('recipes/details.html', recipe=recipe, saved_recipes=saved_recipes)
 
 
 @app.route('/recipes/byIngredients', methods=["GET", "POST"])
@@ -217,6 +224,45 @@ def show_byIngredients_recipes():
     return render_template('recipes/show_byIngredients.html', recipes=session['recipes'])
 
 
+@app.route('/recipes/<int:recipe_id>/saved', methods=["POST"])
+def save_recipe(recipe_id):
+    """Allows user to save a chosen recipe."""
+    if not g.user:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+
+    saved_recipe = Recipe(user_id=g.user.id, recipe_id=recipe_id)
+    db.session.add(saved_recipe)
+    db.session.commit()
+    return redirect(f"/user/{g.user.id}/saved-recipes")
+
+
+@app.route('/recipes/<int:recipe_id>/favourite', methods=["POST"])
+def add_favourite(recipe_id):
+    """Allow users to favourite a recipe."""
+    if not g.user:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+
+    recipe = Recipe.query.get_or_404(recipe_id)
+    recipe.favourite = True
+    db.session.commit()
+    return redirect(f"/user/{g.user.id}/favourite-recipes")
+
+
+@app.route('/recipes/<int:recipe_id>/favourite/remove', methods=["POST"])
+def remove_favourite(recipe_id):
+    """Removes favourite from user's favourite recipes and updates db."""
+    if not g.user:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+
+    recipe = Recipe.query.get_or_404(recipe_id)
+    recipe.favourite = False
+    db.session.commit()
+    return redirect(f"/user/{g.user.id}/favourite-recipes")
+
+
 @app.route('/ingredient/<int:ingredient_id>')
 def get_ingredient_substitutes(ingredient_id):
     """Display substitutes for a given ingredient."""
@@ -241,36 +287,139 @@ def get_similar_recipes(recipe_id):
 @app.route('/user/<int:user_id>/update', methods=["GET", "POST"])
 def update_user_profile(user_id):
     """Update user details on profile page and in database."""
+    if not g.user and g.user.id != user_id:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+    user = User.query.get_or_404(user_id)
+    form = UpdateUserForm(obj=user)
+
+    if form.validate_on_submit():
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.email = form.email.data
+        user.image_url = form.image_url.data
+        db.session.commit()
+        return redirect(f"/user/{user.id}")
+    else:
+        return render_template('users/update.html', form=form)
 
 
 @app.route('/user/<int:user_id>/preferences', methods=["GET", "POST"])
 def update_user_preferences(user_id):
     """Update user preferences on profile page and in database."""
+    if not g.user and g.user.id != user_id:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+
+    preferences = Preference.query.filter_by(user_id=user_id).first()
+    form = UpdatePreferencesForm()
+
+    if form.validate_on_submit():
+        if preferences != None:
+            for choice in form.data:
+                if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] != None and form.data[choice] != '':
+                    preferences.preferences[choice] = form.data[choice]
+            new_preferences = preferences.preferences
+
+            db.session.commit()
+            return redirect(f"/user/{user_id}")
+        else:
+            preferences = {}
+            for choice in form.data:
+                if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] != None and form.data[choice] != '':
+                    preferences[choice] = form.data[choice]
+            save_preferences = Preference(
+                user_id=user_id, preferences=preferences)
+            db.session.add(save_preferences)
+            db.session.commit()
+            return redirect(f"/user/{user_id}")
+    else:
+        return render_template('users/update-preferences.html', form=form)
 
 
 @app.route('/user/<int:user_id>/shoppinglist')
 def get_user_shoppinglist(user_id):
     """Retrieves user's shopping list from API and displays."""
+    if not g.user and g.user.id != user_id:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+    user = User.query.get_or_404(user_id)
+    username = user.api_username
+    hash = user.hash
+    res = requests.get(f"{API_BASE_URL}mealplanner/{username}/shopping-list",
+                       params={'apiKey': API_KEY, 'username': username, 'hash': hash})
+    shoppinglist = res.json()['aisles']
+
+    return render_template('users/shoppinglist.html', shoppinglist=shoppinglist)
 
 
-@app.route('/user/<int:user_id>/shoppinglist/add', methods=["POST"])
-def add_to_shoppinglist(user_id):
+@app.route('/shoppinglist/add/<ingredient_name>', methods=["GET", "POST"])
+def add_to_shoppinglist(ingredient_name):
     """Add an item to a user's shopping list."""
+    if not g.user:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+    user = User.query.get_or_404(g.user.id)
+    username = user.api_username
+    hash = user.hash
+    items = {"item": ingredient_name, "parse": True}
+    res = requests.post(f"{API_BASE_URL}mealplanner/{username}/shopping-list/items",
+                        params={'apiKey': API_KEY, 'username': username, 'hash': hash}, json=items)
+
+    return redirect(f"/user/{g.user.id}/shoppinglist")
 
 
-@app.route('/user/<int:user_id>/shoppinglist/delete', methods=["DELETE"])
-def delete_from_shoppinglist(user_id):
+@app.route('/shoppinglist/delete/<int:ingredient_id>', methods=["GET", "DELETE"])
+def delete_from_shoppinglist(ingredient_id):
     """Delete an item from a user's shopping list."""
+    if not g.user:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+    user = User.query.get_or_404(g.user.id)
+    username = user.api_username
+    hash = user.hash
+    res = requests.delete(f"{API_BASE_URL}mealplanner/{username}/shopping-list/items/{ingredient_id}",
+                          params={'apiKey': API_KEY, 'username': username, 'hash': hash})
+    return redirect(f"/user/{g.user.id}/shoppinglist")
 
 
 @app.route('/user/<int:user_id>/saved-recipes')
 def get_user_saved_recipes(user_id):
     """Shows user's saved recipes."""
+    if not g.user and g.user.id != user_id:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+    user_recipes = Recipe.query.filter_by(user_id=user_id).all()
+    if len(user_recipes) == 0:
+        flash("No recipes currently saved.", "info")
+        return redirect('/')
+    recipes = []
+    for recipe in user_recipes:
+        res = requests.get(
+            f"{API_BASE_URL}recipes/{recipe.recipe_id}/information", params={'apiKey': API_KEY})
+        recipes.append(res.json())
+    return render_template('users/saved-or-favourite.html', recipes=recipes, user_recipes=user_recipes)
 
 
 @app.route('/user/<int:user_id>/favourite-recipes')
 def get_user_favourite_recipes(user_id):
     """Shows user's favourite recipes."""
+    if not g.user and g.user.id != user_id:
+        flash("Unauthorized access. Please login.", "danger")
+        return redirect("/")
+    user_recipes = Recipe.query.filter_by(
+        user_id=user_id, favourite=True).all()
+
+    if not isinstance(user_recipes, list):
+        flash("No recipes currently in favourites.", "info")
+        return redirect('/')
+    recipes = []
+    for recipe in user_recipes:
+        res = requests.get(
+            f"{API_BASE_URL}recipes/{recipe.recipe_id}/information", params={'apiKey': API_KEY})
+        recipes.append(res.json())
+    return render_template('users/saved-or-favourite.html', recipes=recipes, user_recipes=user_recipes)
+
 # *********************************************************************** #
 
 

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% block title %}Update User
+Profile Details{% endblock %} {% block content %}
+<h2 class="text-center">
+  Update your details {{g.user.username}}
+</h2>
+<form method="POST">
+  {{form.hidden_tag()}} {% for field in form if
+  field.widget.input_type != 'hidden' %}
+  {{field.label}}{{field(class_="form-control")}} {% for
+  error in field.errors %}
+  <span class="text-danger">{{error}}</span> {% endfor %} {%
+  endfor %}
+  <br />
+  <button class="btn btn-primary">SAVE</button>
+</form>
+{% endblock %}

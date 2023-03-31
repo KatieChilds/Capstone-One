@@ -24,7 +24,7 @@
   </head>
   <body>
     <nav
-      class="navbar navbar-expand-lg d-flex flex-row navbar-dark bg-primary mb-4"
+      class="navbar navbar-expand-lg navbar-dark bg-primary mb-4"
     >
       <a
         class="navbar-brand"
@@ -40,6 +40,7 @@
             >What's in your Fridge?</a
           >
         </li>
+
         {% endif %}
         <li class="nav-item">
           <a
@@ -48,6 +49,7 @@
             >Search Recipes</a
           >
         </li>
+
         {% if not g.user %}
         <li class="nav-item">
           <a
@@ -56,6 +58,7 @@
             >Signup</a
           >
         </li>
+
         <li class="nav-item">
           <a
             class="nav-link"
@@ -63,39 +66,39 @@
             >Login</a
           >
         </li>
-        {% endif %}
-        {% if g.user %}
+
+        {% endif %} {% if g.user %}
         <li class="nav-item">
           <a
             class="nav-link"
-            href=""
+            href="/user/{{g.user.id}}/saved-recipes"
             >Saved Recipes</a
           >
         </li>
+
         <li class="nav-item">
           <a
             class="nav-link"
-            href=""
+            href="/user/{{g.user.id}}/favourite-recipes"
             >Favourite Recipes</a
           >
         </li>
-        </ul>
-        <span class="nav-item d-flex justify-content-end">
-          <a
-            class="nav-link text-white"
-            href="/user/{{g.user.id}}"
-            >{{g.user.username}}</a
-          >
-        </span> 
-        <span class="nav-item d-flex justify-content-end">
+      </ul>
+      <div class="nav-right">
+        <a
+          class="nav-link text-white"
+          href="/user/{{g.user.id}}"
+          >{{g.user.username}}</a
+        >
+      </div>
+      <div class="nav-right">
         <a
           class="nav-link btn btn-secondary btn-sm"
           href="/logout"
           >Logout</a
         >
-      </span>
-        {% endif %}
-      </ul>
+      </div>
+      {% endif %}
     </nav>
 
     <div class="container">

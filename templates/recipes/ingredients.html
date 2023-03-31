@@ -11,7 +11,17 @@ Ingredients{% endblock %} {% block content %}
 <h5>Subtitutes for: {{substitutes['ingredient']}}</h5>
 <ul>
   {% for item in substitutes['substitutes'] %}
-  <li>{{item}}</li>
+  <li>
+    {{item}}
+    <span class="text-primary">
+      ---- Add ingredient to shopping list
+    </span>
+    <a
+      href="/shoppinglist/add/{{item}}"
+      class="btn btn-sm btn-primary d-sm-inline-flex"
+      ><i class="fa-solid fa-square-plus"></i
+    ></a>
+  </li>
   {% endfor %}
 </ul>
 {% endif %} {% endblock %}

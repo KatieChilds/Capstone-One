@@ -23,6 +23,14 @@ Recipe Details{% endblock %} {% block content %}
   {% for ingredient in recipe['extendedIngredients'] %}
   <li class="list-group-item">
     {{ingredient['original']}}
+    <span class="text-primary">
+      ---- Add ingredient to shopping list
+    </span>
+    <a
+      href="/shoppinglist/add/{{ingredient['name']}}"
+      class="btn btn-sm btn-primary d-sm-inline-flex"
+      ><i class="fa-solid fa-square-plus"></i
+    ></a>
   </li>
   {% endfor %}
 </ul>
@@ -36,4 +44,21 @@ Recipe Details{% endblock %} {% block content %}
   class="btn btn-secondary"
   >Show Similar Recipes</a
 >
-{% endblock %}
+{% if saved_recipes != [] %} {% for saved in saved_recipes
+%} {% if saved.recipe_id != recipe['id'] %}
+<form
+  action="/recipes/{{recipe['id']}}/saved"
+  method="POST"
+  class="d-inline-flex"
+>
+  <button class="btn btn-primary">SAVE RECIPE</button>
+</form>
+{% endif %}{% endfor %} {% else %}
+<form
+  action="/recipes/{{recipe['id']}}/saved"
+  method="POST"
+  class="d-inline-flex"
+>
+  <button class="btn btn-primary">SAVE RECIPE</button>
+</form>
+{% endif %}{% endblock %}

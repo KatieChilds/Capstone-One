@@ -1,0 +1,30 @@
+{% extends 'base.html' %}{% block title %}User Shopping
+List{% endblock %} {% block content %}
+<h2 class="text-center">
+  {{g.user.username}}'s Shopping List
+</h2>
+<br />
+{% if shoppinglist == [] %}
+<p
+  class="border border-4 border-primary rounded text-primary text-center"
+>
+  No items currently on your shopping list!
+</p>
+{% endif %}
+<ul class="list-group">
+  {% for aisle in shoppinglist %} {% for item in
+  aisle['items'] %}
+  <li class="list-group-item">
+    {{item['name']}}
+    <span class="text-secondary">
+      ---- Delete ingredient from shopping list
+    </span>
+    <a
+      href="/shoppinglist/delete/{{item['id']}}"
+      class="btn btn-sm btn-secondary d-sm-inline-flex"
+      ><i class="fa-solid fa-square-minus"></i
+    ></a>
+  </li>
+  {% endfor %} {% endfor %}
+</ul>
+{% endblock %}

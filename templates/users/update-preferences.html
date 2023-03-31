@@ -1,0 +1,28 @@
+{% extends 'base.html' %}{% block title %}Update User Saved
+Preferences {% endblock %}{% block content %}
+<h2 class="text-center">
+  Update your saved preferences {{g.user.username}}
+</h2>
+<form method="POST">
+  {{form.hidden_tag()}} {{form.cuisine.label}}
+  {{form.cuisine(size=3, multiple=True,
+  class_="form-control")}} {{form.diet.label}}
+  {{form.diet(size=3, multiple=True,
+  class_="form-control")}} {{form.intolerances.label}}
+  {{form.intolerances(size=3, multiple=True,
+  class_="form-control")}} {{form.includeIngredients.label}}
+  {{form.includeIngredients(class_="form-control")}}
+  {{form.excludeIngredients.label}}
+  {{form.excludeIngredients(class_="form-control")}}
+  {{form.maxReadyTime.label}}
+  {{form.maxReadyTime(class_="form-control")}}
+  {{form.number.label}}
+  {{form.number(class_="form-control")}} {% for field in
+  form if field.widget.input_type != 'hidden' %} {% for
+  error in field.errors %}
+  <span class="text-danger">{{error}}</span> {% endfor %} {%
+  endfor %}
+  <br />
+  <button class="btn btn-primary">SAVE</button>
+</form>
+{% endblock %}
