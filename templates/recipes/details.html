@@ -22,7 +22,7 @@ Recipe Details{% endblock %} {% block content %}
 <ul class="list-group list-group-flush">
   {% for ingredient in recipe['extendedIngredients'] %}
   <li class="list-group-item">
-    {{ingredient['original']}}
+    {{ingredient['original']}} {% if g.user %}
     <span class="text-primary">
       ---- Add ingredient to shopping list
     </span>
@@ -31,6 +31,7 @@ Recipe Details{% endblock %} {% block content %}
       class="btn btn-sm btn-primary d-sm-inline-flex"
       ><i class="fa-solid fa-square-plus"></i
     ></a>
+    {% endif %}
   </li>
   {% endfor %}
 </ul>
@@ -44,8 +45,7 @@ Recipe Details{% endblock %} {% block content %}
   class="btn btn-secondary"
   >Show Similar Recipes</a
 >
-{% if saved_recipes != [] %} {% for saved in saved_recipes
-%} {% if saved.recipe_id != recipe['id'] %}
+{% if g.user %} {% if saved_recipes == [] %}
 <form
   action="/recipes/{{recipe['id']}}/saved"
   method="POST"
@@ -53,7 +53,7 @@ Recipe Details{% endblock %} {% block content %}
 >
   <button class="btn btn-primary">SAVE RECIPE</button>
 </form>
-{% endif %}{% endfor %} {% else %}
+{% else %} {% if recipe['id'] not in saved_recipes %}
 <form
   action="/recipes/{{recipe['id']}}/saved"
   method="POST"
@@ -61,4 +61,4 @@ Recipe Details{% endblock %} {% block content %}
 >
   <button class="btn btn-primary">SAVE RECIPE</button>
 </form>
-{% endif %}{% endblock %}
+{% endif %}{% endif %}{% endif %}{% endblock %}

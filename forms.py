@@ -32,6 +32,7 @@ class LoginForm(FlaskForm):
 
 class UpdateUserForm(FlaskForm):
     """Form to update user profile details."""
+    username = StringField("Username", validators=[InputRequired()])
     first_name = StringField("First Name", validators=[InputRequired()])
     last_name = StringField("Last Name", validators=[InputRequired()])
     email = EmailField("Email", validators=[InputRequired()])

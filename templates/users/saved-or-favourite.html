@@ -7,21 +7,11 @@
     {% for recipe in recipes %}
     <div class="card text-white bg-primary" style="width: fit-content;">
         <h5 class="card-header">{{recipe['title']}}
-        {% for user_recipe in user_recipes %}
-        {% if user_recipe.favourite %}
-        <form action="/recipes/{{recipe['id']}}/favourite/remove" method="POST" class="card-header d-sm-inline-flex">
-            <button class="btn btn-sm btn-secondary">
+        <form action="/recipes/{{recipe['id']}}/{{'favourite' if recipe['id'] not in user_recipes else 'favourite/remove'}}" method="POST" class="card-header d-sm-inline-flex">
+            <button class="btn btn-sm {{'btn-secondary' if recipe['id'] in user_recipes else 'btn-light'}}">
                 <i class="fa fa-heart"></i>    
             </button>
         </form>
-        {% else %}
-        <form action="/recipes/{{recipe['id']}}/favourite" method="POST" class="card-header d-sm-inline-flex">
-            <button class="btn btn-sm btn-light">
-                <i class="fa fa-heart"></i>    
-            </button>
-        </form>
-        {% endif %}
-        {% endfor %}
     </h5>
         {% if recipe['image'] %}
         <img src="{{recipe['image']}}" class="card-img" alt="No description available." width="240px" height="150px">

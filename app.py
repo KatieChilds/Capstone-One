@@ -1,7 +1,7 @@
 from flask import Flask, redirect, render_template, session, g, flash, request
 import requests
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, PendingRollbackError, SQLAlchemyError
 from models import db, connect_db, User, Recipe, Preference
 from forms import RegisterForm, LoginForm, ByIngredientsForm, ComplexSearchForm, UpdateUserForm, UpdatePreferencesForm
 from secret import API_KEY
@@ -118,8 +118,8 @@ def logout():
 @app.route('/user/<int:user_id>')
 def show_user_profile(user_id):
     """Shows the user profile."""
-    if not g.user and g.user.id != user_id:
-        flash("Unauthorized access. Please login.", "danger")
+    if not g.user or g.user.id != user_id:
+        flash("Unauthorized access.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
@@ -167,10 +167,14 @@ def search_recipes():
         recipes = res.json()['results']
         session['recipes'] = recipes
         if g.user and form.data['save'] == True:
-            save_preferences = Preference(
-                user_id=g.user.id, preferences=preferences)
-            db.session.add(save_preferences)
-            db.session.commit()
+            try:
+                save_preferences = Preference(
+                    user_id=g.user.id, preferences=preferences)
+                db.session.add(save_preferences)
+                db.session.commit()
+            except IntegrityError:
+                flash("Preferences have already been saved. Please do not check the box at the bottom of the form to continue with your search. If you wish to update your preferences please do so through your user profile.", "danger")
+                return redirect('/recipes/search')
         return redirect('/recipes')
     else:
         return render_template('recipes/complex_search.html', form=form)
@@ -179,7 +183,18 @@ def search_recipes():
 @app.route('/recipes')
 def show_recipes():
     """Shows the recipes collected from the complexSearch results."""
+    if session['recipes'] == []:
+        flash("Sorry, no recipes were found that match your search criteria. Please ammend your search and try again.", "info")
+        return redirect('/recipes/search')
     return render_template('recipes/show.html', recipes=session['recipes'])
+
+
+def get_saved_recipe_ids(recipes):
+    """Creates a list of recipe ids from user's saved recipes."""
+    user_recipes = []
+    for recipe in recipes:
+        user_recipes.append(recipe.recipe_id)
+    return user_recipes
 
 
 @app.route('/recipes/<int:recipe_id>')
@@ -190,8 +205,9 @@ def get_recipe(recipe_id):
     recipe = res.json()
     if g.user:
         saved_recipes = Recipe.query.filter_by(user_id=g.user.id).all()
-
-    return render_template('recipes/details.html', recipe=recipe, saved_recipes=saved_recipes)
+        saved_recipes_ids = get_saved_recipe_ids(saved_recipes)
+        return render_template('recipes/details.html', recipe=recipe, saved_recipes=saved_recipes_ids)
+    return render_template('recipes/details.html', recipe=recipe)
 
 
 @app.route('/recipes/byIngredients', methods=["GET", "POST"])
@@ -221,6 +237,9 @@ def get_byIngredients():
 @app.route('/recipes/results')
 def show_byIngredients_recipes():
     """Shows the recipes collected from the byIngredients search results."""
+    if session['recipes'] == []:
+        flash("Sorry, no recipes were found that match your search criteria. Please ammend your search and try again.", "info")
+        return redirect('/recipes/byIngredients')
     return render_template('recipes/show_byIngredients.html', recipes=session['recipes'])
 
 
@@ -287,18 +306,30 @@ def get_similar_recipes(recipe_id):
 @app.route('/user/<int:user_id>/update', methods=["GET", "POST"])
 def update_user_profile(user_id):
     """Update user details on profile page and in database."""
-    if not g.user and g.user.id != user_id:
-        flash("Unauthorized access. Please login.", "danger")
+    if not g.user or g.user.id != user_id:
+        flash("Unauthorized access. Please login or view your own profile.", "danger")
         return redirect("/")
     user = User.query.get_or_404(user_id)
     form = UpdateUserForm(obj=user)
 
     if form.validate_on_submit():
-        user.first_name = form.first_name.data
-        user.last_name = form.last_name.data
-        user.email = form.email.data
-        user.image_url = form.image_url.data
-        db.session.commit()
+        try:
+            user.username = form.username.data
+            user.first_name = form.first_name.data
+            user.last_name = form.last_name.data
+            user.email = form.email.data
+            user.image_url = form.image_url.data
+            db.session.commit()
+        except PendingRollbackError:
+            db.session.rollback()
+            flash("Username already taken. Please try another.", 'danger')
+            return render_template('users/update.html', form=form)
+        except IntegrityError:
+            flash("Username already taken. Please try another.", 'danger')
+            return render_template('users/update.html', form=form)
+        except SQLAlchemyError:
+            flash("Username already taken. Please try another.", "danger")
+            return render_template('users/update.html', form=form)
         return redirect(f"/user/{user.id}")
     else:
         return render_template('users/update.html', form=form)
@@ -307,7 +338,7 @@ def update_user_profile(user_id):
 @app.route('/user/<int:user_id>/preferences', methods=["GET", "POST"])
 def update_user_preferences(user_id):
     """Update user preferences on profile page and in database."""
-    if not g.user and g.user.id != user_id:
+    if not g.user or g.user.id != user_id:
         flash("Unauthorized access. Please login.", "danger")
         return redirect("/")
 
@@ -340,7 +371,7 @@ def update_user_preferences(user_id):
 @app.route('/user/<int:user_id>/shoppinglist')
 def get_user_shoppinglist(user_id):
     """Retrieves user's shopping list from API and displays."""
-    if not g.user and g.user.id != user_id:
+    if not g.user or g.user.id != user_id:
         flash("Unauthorized access. Please login.", "danger")
         return redirect("/")
     user = User.query.get_or_404(user_id)
@@ -383,18 +414,28 @@ def delete_from_shoppinglist(ingredient_id):
     return redirect(f"/user/{g.user.id}/shoppinglist")
 
 
+def get_recipe_ids(recipes):
+    """Creates a list of recipe ids from user's saved/favourite recipes."""
+    user_recipes = []
+    for recipe in recipes:
+        if recipe.favourite == True:
+            user_recipes.append(recipe.recipe_id)
+    return user_recipes
+
+
 @app.route('/user/<int:user_id>/saved-recipes')
 def get_user_saved_recipes(user_id):
     """Shows user's saved recipes."""
-    if not g.user and g.user.id != user_id:
+    if not g.user:
         flash("Unauthorized access. Please login.", "danger")
         return redirect("/")
-    user_recipes = Recipe.query.filter_by(user_id=user_id).all()
-    if len(user_recipes) == 0:
+    all_user_recipes = Recipe.query.filter_by(user_id=user_id).all()
+    if len(all_user_recipes) == 0:
         flash("No recipes currently saved.", "info")
         return redirect('/')
+    user_recipes = get_recipe_ids(all_user_recipes)
     recipes = []
-    for recipe in user_recipes:
+    for recipe in all_user_recipes:
         res = requests.get(
             f"{API_BASE_URL}recipes/{recipe.recipe_id}/information", params={'apiKey': API_KEY})
         recipes.append(res.json())
@@ -404,17 +445,17 @@ def get_user_saved_recipes(user_id):
 @app.route('/user/<int:user_id>/favourite-recipes')
 def get_user_favourite_recipes(user_id):
     """Shows user's favourite recipes."""
-    if not g.user and g.user.id != user_id:
+    if not g.user:
         flash("Unauthorized access. Please login.", "danger")
         return redirect("/")
-    user_recipes = Recipe.query.filter_by(
+    full_user_recipes = Recipe.query.filter_by(
         user_id=user_id, favourite=True).all()
-
-    if not isinstance(user_recipes, list):
+    if full_user_recipes == []:
         flash("No recipes currently in favourites.", "info")
         return redirect('/')
+    user_recipes = get_recipe_ids(full_user_recipes)
     recipes = []
-    for recipe in user_recipes:
+    for recipe in full_user_recipes:
         res = requests.get(
             f"{API_BASE_URL}recipes/{recipe.recipe_id}/information", params={'apiKey': API_KEY})
         recipes.append(res.json())
