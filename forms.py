@@ -1,8 +1,11 @@
 """Forms for Fridge Raiders app (CAPSTONE ONE)."""
-
-from wtforms import SelectField, StringField, EmailField, URLField, PasswordField, SelectMultipleField, IntegerField, BooleanField, RadioField
-from flask_wtf import FlaskForm
+# from wtforms_json import JSONField
 from wtforms.validators import InputRequired, Optional, NumberRange
+from flask_wtf import FlaskForm
+from wtforms import SelectField, StringField, EmailField, URLField, PasswordField, SelectMultipleField, IntegerField, BooleanField, RadioField
+# import wtforms_json
+# wtforms_json.init()
+
 
 cuisines = ['african', 'american', 'british', 'cajun', 'caribbean', 'chinese', 'eastern european', 'european', 'french', 'german', 'greek', 'indian', 'irish',
             'italian', 'japanese', 'jewish', 'korean', 'latin american', 'mediterranean', 'mexican', 'middle eastern', 'nordic', 'southern', 'spanish', 'thai', 'vietnamese']
@@ -20,7 +23,7 @@ class RegisterForm(FlaskForm):
     first_name = StringField("First Name", validators=[InputRequired()])
     last_name = StringField("Last Name", validators=[InputRequired()])
     email = EmailField("Email", validators=[InputRequired()])
-    image_url = URLField("Photo URL", default=None)
+    image_url = StringField("Photo URL", default=None)
     password = PasswordField("Password", validators=[InputRequired()])
 
 
@@ -36,7 +39,7 @@ class UpdateUserForm(FlaskForm):
     first_name = StringField("First Name", validators=[InputRequired()])
     last_name = StringField("Last Name", validators=[InputRequired()])
     email = EmailField("Email", validators=[InputRequired()])
-    image_url = URLField("Photo URL", default=None)
+    image_url = StringField("Photo URL", default=None)
 
 
 class ByIngredientsForm(FlaskForm):

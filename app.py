@@ -5,7 +5,10 @@ from sqlalchemy.exc import IntegrityError, PendingRollbackError, SQLAlchemyError
 from models import db, connect_db, User, Recipe, Preference
 from forms import RegisterForm, LoginForm, ByIngredientsForm, ComplexSearchForm, UpdateUserForm, UpdatePreferencesForm
 from secret import API_KEY
-from bs4 import BeautifulSoup
+import json
+# from bs4 import BeautifulSoup
+# import wtforms_json
+# wtforms_json.init()
 
 CURR_USER_KEY = 'curr_user'
 API_BASE_URL = 'https://api.spoonacular.com/'
@@ -123,10 +126,10 @@ def show_user_profile(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    preferences = Preference.query.filter(
+    user_preferences = Preference.query.filter(
         Preference.user_id == user_id).first()
-    if preferences != None:
-        preferences = preferences.preferences
+    if user_preferences != None:
+        preferences = json.loads(user_preferences.preferences)
     else:
         preferences = {"Notice": "No saved preferences."}
     return render_template('users/profile.html', user=user, preferences=preferences)
@@ -136,10 +139,10 @@ def show_user_profile(user_id):
     # Recipe views
 
 
-def create_search_string(preferences):
+def create_search_string(data):
     """Construct the query string needed for the API endpoint of complexSearch."""
     choices = []
-    for (k, v) in preferences.items():
+    for (k, v) in data.items():
         if isinstance(v, list):
             new_v = ",".join(v)
             choices.append(f"{k}={new_v}")
@@ -154,13 +157,14 @@ def create_search_string(preferences):
 def search_recipes():
     """Show search form and handle form submission for general recipe search."""
     form = ComplexSearchForm()
-    preferences = {}
+    data = {}
+
     if form.validate_on_submit():
         for choice in form.data:
             if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] != None and form.data[choice] != '' and choice != 'save':
-                preferences[choice] = form.data[choice]
+                data[choice] = form.data[choice]
 
-        query_string = create_search_string(preferences)
+        query_string = create_search_string(data)
 
         res = requests.get(
             f"{API_BASE_URL}recipes/complexSearch?{query_string}", params={'apiKey': API_KEY})
@@ -169,7 +173,7 @@ def search_recipes():
         if g.user and form.data['save'] == True:
             try:
                 save_preferences = Preference(
-                    user_id=g.user.id, preferences=preferences)
+                    user_id=g.user.id, preferences=data)
                 db.session.add(save_preferences)
                 db.session.commit()
             except IntegrityError:
@@ -313,24 +317,26 @@ def update_user_profile(user_id):
     form = UpdateUserForm(obj=user)
 
     if form.validate_on_submit():
-        try:
+        taken = User.query.filter_by(username=form.username.data).first()
+        if taken == None:
             user.username = form.username.data
             user.first_name = form.first_name.data
             user.last_name = form.last_name.data
             user.email = form.email.data
             user.image_url = form.image_url.data
             db.session.commit()
-        except PendingRollbackError:
-            db.session.rollback()
+            return redirect(f"/user/{user.id}")
+        elif taken.id == user_id:
+            user.username = form.username.data
+            user.first_name = form.first_name.data
+            user.last_name = form.last_name.data
+            user.email = form.email.data
+            user.image_url = form.image_url.data
+            db.session.commit()
+            return redirect(f"/user/{user.id}")
+        else:
             flash("Username already taken. Please try another.", 'danger')
             return render_template('users/update.html', form=form)
-        except IntegrityError:
-            flash("Username already taken. Please try another.", 'danger')
-            return render_template('users/update.html', form=form)
-        except SQLAlchemyError:
-            flash("Username already taken. Please try another.", "danger")
-            return render_template('users/update.html', form=form)
-        return redirect(f"/user/{user.id}")
     else:
         return render_template('users/update.html', form=form)
 
@@ -342,30 +348,72 @@ def update_user_preferences(user_id):
         flash("Unauthorized access. Please login.", "danger")
         return redirect("/")
 
-    preferences = Preference.query.filter_by(user_id=user_id).first()
-    form = UpdatePreferencesForm()
-
+    user_preferences = Preference.query.filter_by(user_id=user_id).first()
+    if user_preferences:
+        form = UpdatePreferencesForm(data=user_preferences.preferences)
+    else:
+        form = UpdatePreferencesForm()
     if form.validate_on_submit():
-        if preferences != None:
-            for choice in form.data:
-                if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] != None and form.data[choice] != '':
-                    preferences.preferences[choice] = form.data[choice]
-            new_preferences = preferences.preferences
-
-            db.session.commit()
-            return redirect(f"/user/{user_id}")
+        preferences = {}
+        for choice in form.data:
+            if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] is not None and form.data[choice] != '':
+                preferences[choice] = form.data[choice]
+        # convert preferences dict to JSON formatted string
+        preferences_str = json.dumps(preferences)
+        if user_preferences is not None:
+            user_preferences.preferences = preferences_str
         else:
-            preferences = {}
-            for choice in form.data:
-                if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] != None and form.data[choice] != '':
-                    preferences[choice] = form.data[choice]
             save_preferences = Preference(
-                user_id=user_id, preferences=preferences)
+                user_id=user_id, preferences=preferences_str)
             db.session.add(save_preferences)
-            db.session.commit()
-            return redirect(f"/user/{user_id}")
+        db.session.commit()
+        return redirect(f"/user/{user_id}")
     else:
         return render_template('users/update-preferences.html', form=form)
+
+
+# @app.route('/user/<int:user_id>/preferences', methods=["GET", "POST"])
+# def update_user_preferences(user_id):
+#     """Update user preferences on profile page and in database."""
+#     if not g.user or g.user.id != user_id:
+#         flash("Unauthorized access. Please login.", "danger")
+#         return redirect("/")
+
+#     user_preferences = Preference.query.filter_by(user_id=user_id).first()
+#     if user_preferences:
+#         form = UpdatePreferencesForm(data=user_preferences.preferences)
+#     else:
+#         form = UpdatePreferencesForm()
+#     if form.validate_on_submit():
+#         if user_preferences is not None:
+#             db.session.add(user_preferences)
+#             data = user_preferences.preferences
+#             for choice in form.data:
+#                 if choice != 'csrf_token':
+#                     data[choice] = form.data[choice]
+#             new_preferences = data
+#             user_preferences.preferences = new_preferences
+#             try:
+#                 db.session.commit()
+#                 flash('Preferences updated successfully.', 'success')
+#                 return redirect(f'/user/{user_id}')
+#             except Exception as e:
+#                 db.session.rollback()
+#                 flash(
+#                     'An error occurred while updating your preferences. Please try again.', 'danger')
+#                 return redirect(f'/user/{user_id}')
+#         else:
+#             preferences = {}
+#             for choice in form.data:
+#                 if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] != None and form.data[choice] != '':
+#                     preferences[choice] = form.data[choice]
+#             save_preferences = Preference(
+#                 user_id=user_id, preferences=preferences)
+#             db.session.add(save_preferences)
+#             db.session.commit()
+#             return redirect(f"/user/{user_id}")
+#     else:
+#         return render_template('users/update-preferences.html', form=form)
 
 
 @app.route('/user/<int:user_id>/shoppinglist')

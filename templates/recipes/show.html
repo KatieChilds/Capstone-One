@@ -7,10 +7,11 @@ Search{% endblock %} {% block content %}
   ></span>
 </h2>
 <br>
-<div class="container">
+<div class="container text-center">
+  <div class="row row-cols-md-3">
 {% for recipe in recipes %}
-<div class="card text-white bg-primary" style="width: fit-content;">
-    <h5 class="card-header">{{recipe['title']}}</h5>
+<div class="card text-white bg-primary col w-25 h-25">
+    <h5 class="card-header text-wrap">{{recipe['title']}}</h5>
     {% if recipe['image'] %}
     <img src="{{recipe['image']}}" class="card-img" alt="No description available.">
     {% else %}
@@ -23,6 +24,7 @@ Search{% endblock %} {% block content %}
 </div>
 <br>
   {% endfor %}
+</div>
 </div>
 
 {% endblock %}

@@ -11,22 +11,37 @@ Search Form{% endblock %} {% block content %}
   recipe box
 </h4>
 <br />
-<form method="POST">
-  {{form.hidden_tag()}} {{form.ingredients.label}}
-  {{form.ingredients(class_="form-control")}}
-  {{form.ranking.label}} {% for subfield in form.ranking %}
-  <tr>
-    <td>{{subfield}}</td>
-    <td>{{subfield.label}}</td>
-  </tr>
-  {% endfor %}
-  <br />{{form.number.label}}
-  {{form.number(class_="form-control")}} {% for field in
-  form if field.widget.input_type != 'hidden' %} {% for
-  error in field.errors %}
-  <span class="text-danger">{{error}}</span> {% endfor %} {%
-  endfor %}
-  <br />
-  <button class="btn btn-primary">SEARCH</button>
-</form>
+<div class="container text-center">
+  <div class="row row-cols-2">
+    <div class="col">
+      <form method="POST">
+        {{form.hidden_tag()}} {{form.ingredients.label}}
+        {{form.ingredients(class_="form-control")}}
+        {{form.ranking.label}} {% for subfield in
+        form.ranking %}
+        <tr>
+          <td>{{subfield}}</td>
+          <td>{{subfield.label}}</td>
+        </tr>
+        {% endfor %}
+        <br />{{form.number.label}}
+        {{form.number(class_="form-control")}} {% for field
+        in form if field.widget.input_type != 'hidden' %} {%
+        for error in field.errors %}
+        <span class="text-danger">{{error}}</span> {% endfor
+        %} {% endfor %}
+        <br />
+        <button class="btn btn-primary">SEARCH</button>
+      </form>
+    </div>
+    <div class="col">
+      <img
+        src="/static/fridge.png"
+        alt="Image of a refrigerator"
+        width="460px"
+        height="460px"
+      />
+    </div>
+  </div>
+</div>
 {% endblock %}

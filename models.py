@@ -45,7 +45,8 @@ class User(db.Model):
         data = res.json()
         hash = data['hash']
         api_username = data['username']
-
+        if image_url is None or image_url == '':
+            image_url = cls.image_url.default.arg
         user = User(username=username, first_name=first_name, last_name=last_name,
                     email=email, image_url=image_url, password=hashed_pwd, hash=hash, api_username=api_username)
 

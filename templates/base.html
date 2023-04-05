@@ -91,20 +91,22 @@
           >
         </li>
       </ul>
-      <div class="nav-right">
-        <a
-          class="nav-link text-white"
-          href="/user/{{g.user.id}}"
-          >{{g.user.username}}</a
-        >
-      </div>
-      <div class="nav-right">
-        <a
-          class="nav-link btn btn-secondary btn-sm"
-          href="/logout"
-          >Logout</a
-        >
-      </div>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item ml-auto">
+          <a
+            class="nav-link text-white"
+            href="/user/{{g.user.id}}"
+            >{{g.user.username}}</a
+          >
+        </li>
+        <li class="nav-item ml-auto">
+          <a
+            class="nav-link btn btn-secondary btn-sm"
+            href="/logout"
+            >Logout</a
+          >
+        </li>
+      </ul>
       {% endif %}
     </nav>
 

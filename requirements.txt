@@ -45,3 +45,4 @@ urllib3==1.26.15
 wcwidth==0.2.6
 Werkzeug==2.2.3
 WTForms==3.0.1
+WTForms-JSON==0.3.5

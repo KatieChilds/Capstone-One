@@ -4,7 +4,7 @@ endblock %} {% block content %}
   {{user.username}}'s Profile
 </h2>
 <div class="row">
-  <div class="col">
+  <div class="col text-center align-self-center">
     <img
       src="{{user.image_url}}"
       alt="User's profile picture."
@@ -32,11 +32,13 @@ endblock %} {% block content %}
   <div class="col">
     <h5>Preferences:</h5>
     <ul class="list-group">
-      {% for item in preferences %}
+      {% for item in preferences %} {% if preferences[item]
+      != [] and preferences[item] != "" and
+      preferences[item] != None %}
       <li class="list-group-item">
         {{item}}: {{preferences[item]}}
       </li>
-      {% endfor %}
+      {% endif %} {% endfor %}
     </ul>
     <br />
     <a
@@ -47,7 +49,7 @@ endblock %} {% block content %}
   </div>
   {% endif %}
 </div>
-<div class="row">
+<div class="row text-center">
   <a
     href="/user/{{g.user.id}}/shoppinglist"
     class="btn btn-primary"
