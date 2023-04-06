@@ -1,9 +1,6 @@
 """Models for Fridge Raiders app (CAPSTONE ONE)."""
 
 from flask_sqlalchemy import SQLAlchemy
-# from sqlalchemy.ext.mutable import MutableDict
-# from sqlalchemy import JSON
-# from sqlalchemy.dialects.postgresql import HSTORE
 from flask_bcrypt import Bcrypt
 from flask import request
 import requests

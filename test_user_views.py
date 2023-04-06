@@ -57,14 +57,18 @@ class UserViewsTestCase(TestCase):
     def test_show_user_profile(self):
         """Shows a user profile page if given valid user id."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get(f"/user/{self.testuser.id}")
-
+            html = resp.get_data(as_text=True)
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("testuser's Profile", str(resp.data))
+            self.assertIn("testuser's Profile", html)
 
     def test_show_user_profile_invalid(self):
         """Shows alert message if invalid user id given or if id does not match current user instead of profile page."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get('/user/99999999999999', follow_redirects=True)
 
             self.assertEqual(resp.status_code, 200)
@@ -73,17 +77,57 @@ class UserViewsTestCase(TestCase):
     def test_update_user_profile(self):
         """Shows form to update user profile given valid id."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get(f"/user/{self.testuser.id}/update")
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("Update your details testuser", str(resp.data))
 
     def test_update_user_profile2(self):
-        """Tests POST request for update to user profile."""
+        """Tests POST request for update to user profile with valid username given."""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            resp = c.post(f"/user/{self.testuser.id}/update", data={'username': 'tester', 'first_name': 'testing',
+                          'last_name': 'test', 'email': 'tester@test.com', 'image_url': None}, follow_redirects=True)
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("tester's Profile", html)
+            self.assertIn("testing", html)
+            self.assertIn("tester@test.com", html)
+            self.assertNotIn("testuser", html)
+            self.assertNotIn("test@test.com", html)
+
+    def test_update_user_profile3(self):
+        """Tests POST request for update to user profile with invalid username given."""
+        self.test3user = User.signup(username="test3user",
+                                     first_name="test",
+                                     last_name="user",
+                                     email="test3@test.com",
+                                     password="testuser",
+                                     image_url=None)
+        self.test3user_id = 8888
+        self.test3user.id = self.test3user_id
+        db.session.commit()
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            resp = c.post(f"/user/{self.testuser.id}/update", data={'username': 'test3user', 'first_name': 'testing',
+                          'last_name': 'test', 'email': 'tester@test.com', 'image_url': None}, follow_redirects=True)
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Update your details testuser", html)
+            self.assertIn("Username already taken.", html)
 
     def test_update_user_preferences(self):
         """Shows form to update user's preferences given valid id."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get(f"/user/{self.testuser.id}/preferences")
 
             self.assertEqual(resp.status_code, 200)
@@ -92,38 +136,74 @@ class UserViewsTestCase(TestCase):
 
     def test_update_user_preferences2(self):
         """Tests POST request to update user's preferences."""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            preferences = {'cuisine': ['italian'], 'diet': [], 'intolerances': [
+            ], 'includeIngredients': '', 'excludeIngredients': '', 'maxReadyTime': 40, 'number': 5}
+            resp = c.post(f"/user/{self.testuser.id}/preferences",
+                          data=preferences, follow_redirects=True)
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("testuser's Profile", html)
+            self.assertIn("italian", html)
+            self.assertIn("40", html)
+            self.assertIn("5", html)
+
+            preferences = Preference.query.filter_by(
+                user_id=self.testuser.id).all()
+            self.assertIsNotNone(preferences)
 
     def test_get_user_shoppinglist(self):
         """Shows user's shoppinglist."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get(f"/user/{self.testuser.id}/shoppinglist")
-
+            html = resp.get_data(as_text=True)
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("testuser's Shopping List", str(resp.data))
+            self.assertIn("testuser's Shopping List", html)
+
+    def test_get_user_shoppinglist_invalid(self):
+        """Does not show shoppinglist if invalid user id given."""
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            resp = c.get(f"/user/12345/shoppinglist", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Unauthorized access", html)
 
     def test_add_to_shoppinglist(self):
         """Adds a given ingredient to user's shoppinglist."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get('/shoppinglist/add/cauliflower',
                          follow_redirects=True)
-
+            html = resp.get_data(as_text=True)
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("testuser's Shopping List", str(resp.data))
-            self.assertIn("cauliflower", str(resp.data))
+            self.assertIn("testuser's Shopping List", html)
+            self.assertIn("cauliflower", html)
 
     def test_delete_from_shoppinglist(self):
         """Deletes a given ingredient from user's shoppinglist."""
         with self.client as c:
-            resp = c.get('/shoppinglist/delete/cauliflower',
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            resp = c.get('/shoppinglist/delete/11135',
                          follow_redirects=True)
-
+            html = resp.get_data(as_text=True)
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("testuser's Shopping List", str(resp.data))
-            self.assertNotIn("cauliflower", str(resp.data))
+            self.assertIn("testuser's Shopping List", html)
+            self.assertNotIn("cauliflower", html)
 
     def test_get_user_saved_recipes(self):
         """Shows user's saved recipes."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get(f"/user/{self.testuser.id}/saved-recipes")
 
             self.assertEqual(resp.status_code, 200)
@@ -134,9 +214,20 @@ class UserViewsTestCase(TestCase):
                 user_id=self.testuser.id).all()
             self.assertEqual(len(saved_recipes), 2)
 
+    def test_get_user_saved_recipes_invalid(self):
+        """Does not show saved recipes if loggedout user."""
+        with self.client as c:
+            resp = c.get(
+                f"/user/{self.testuser.id}/saved-recipes", follow_redirects=True)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Unauthorized access", str(resp.data))
+
     def test_get_user_favourite_recipes(self):
         """Shows user's favourite recipes."""
         with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             resp = c.get(f"/user/{self.testuser.id}/favourite-recipes")
 
             self.assertEqual(resp.status_code, 200)
@@ -146,3 +237,12 @@ class UserViewsTestCase(TestCase):
             favourite_recipes = Recipe.query.filter_by(
                 user_id=self.testuser.id, favourite=True).all()
             self.assertEqual(len(favourite_recipes), 1)
+
+    def test_get_user_favourite_recipes_invalid(self):
+        """Does not show favourite recipes if logged out user."""
+        with self.client as c:
+            resp = c.get(
+                f"/user/{self.testuser.id}/favourite-recipes", follow_redirects=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Unauthorized access", str(resp.data))

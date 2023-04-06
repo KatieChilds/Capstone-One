@@ -1,14 +1,12 @@
-from flask import Flask, redirect, render_template, session, g, flash, request
+from flask import Flask, redirect, render_template, session, g, flash
 import requests
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy.exc import IntegrityError, PendingRollbackError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Recipe, Preference
 from forms import RegisterForm, LoginForm, ByIngredientsForm, ComplexSearchForm, UpdateUserForm, UpdatePreferencesForm
 from secret import API_KEY
 import json
-# from bs4 import BeautifulSoup
-# import wtforms_json
-# wtforms_json.init()
+
 
 CURR_USER_KEY = 'curr_user'
 API_BASE_URL = 'https://api.spoonacular.com/'
@@ -370,50 +368,6 @@ def update_user_preferences(user_id):
         return redirect(f"/user/{user_id}")
     else:
         return render_template('users/update-preferences.html', form=form)
-
-
-# @app.route('/user/<int:user_id>/preferences', methods=["GET", "POST"])
-# def update_user_preferences(user_id):
-#     """Update user preferences on profile page and in database."""
-#     if not g.user or g.user.id != user_id:
-#         flash("Unauthorized access. Please login.", "danger")
-#         return redirect("/")
-
-#     user_preferences = Preference.query.filter_by(user_id=user_id).first()
-#     if user_preferences:
-#         form = UpdatePreferencesForm(data=user_preferences.preferences)
-#     else:
-#         form = UpdatePreferencesForm()
-#     if form.validate_on_submit():
-#         if user_preferences is not None:
-#             db.session.add(user_preferences)
-#             data = user_preferences.preferences
-#             for choice in form.data:
-#                 if choice != 'csrf_token':
-#                     data[choice] = form.data[choice]
-#             new_preferences = data
-#             user_preferences.preferences = new_preferences
-#             try:
-#                 db.session.commit()
-#                 flash('Preferences updated successfully.', 'success')
-#                 return redirect(f'/user/{user_id}')
-#             except Exception as e:
-#                 db.session.rollback()
-#                 flash(
-#                     'An error occurred while updating your preferences. Please try again.', 'danger')
-#                 return redirect(f'/user/{user_id}')
-#         else:
-#             preferences = {}
-#             for choice in form.data:
-#                 if choice != 'csrf_token' and form.data[choice] != [] and form.data[choice] != None and form.data[choice] != '':
-#                     preferences[choice] = form.data[choice]
-#             save_preferences = Preference(
-#                 user_id=user_id, preferences=preferences)
-#             db.session.add(save_preferences)
-#             db.session.commit()
-#             return redirect(f"/user/{user_id}")
-#     else:
-#         return render_template('users/update-preferences.html', form=form)
 
 
 @app.route('/user/<int:user_id>/shoppinglist')

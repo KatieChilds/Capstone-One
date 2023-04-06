@@ -1,10 +1,7 @@
 """Forms for Fridge Raiders app (CAPSTONE ONE)."""
-# from wtforms_json import JSONField
 from wtforms.validators import InputRequired, Optional, NumberRange
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, EmailField, URLField, PasswordField, SelectMultipleField, IntegerField, BooleanField, RadioField
-# import wtforms_json
-# wtforms_json.init()
+from wtforms import StringField, EmailField, PasswordField, SelectMultipleField, IntegerField, BooleanField, RadioField
 
 
 cuisines = ['african', 'american', 'british', 'cajun', 'caribbean', 'chinese', 'eastern european', 'european', 'french', 'german', 'greek', 'indian', 'irish',
