@@ -2,7 +2,6 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask import request
 import requests
 from secret import API_KEY
 

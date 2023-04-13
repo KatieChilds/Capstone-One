@@ -1,29 +1,51 @@
-{% extends 'base.html' %}{% block title %}Saved or Favourite Recipes{% endblock %}
-{% block content %}
+{% extends 'base.html' %}{% block title %}Saved or Favourite
+Recipes{% endblock %} {% block content %}
 <h2 class="text-center">Your Recipes</h2>
 
-<br>
+<br />
 <div class="container">
+  <div class="d-flex flex-wrap">
     {% for recipe in recipes %}
-    <div class="card text-white bg-primary" style="width: fit-content;">
-        <h5 class="card-header">{{recipe['title']}}
-        <form action="/recipes/{{recipe['id']}}/{{'favourite' if recipe['id'] not in user_recipes else 'favourite/remove'}}" method="POST" class="card-header d-sm-inline-flex">
-            <button class="btn btn-sm {{'btn-secondary' if recipe['id'] in user_recipes else 'btn-light'}}">
-                <i class="fa fa-heart"></i>    
-            </button>
+    <div class="card text-white bg-primary m-3 w-25 h-25">
+      <h5 class="card-header text-wrap">
+        {{recipe['title']}}
+        <form
+          action="/recipes/{{recipe['id']}}/{{'favourite' if recipe['id'] not in user_recipes else 'favourite/remove'}}"
+          method="POST"
+          class="card-header d-sm-inline-flex"
+        >
+          <button
+            class="btn btn-sm {{'btn-secondary' if recipe['id'] in user_recipes else 'btn-light'}}"
+          >
+            <i class="fa fa-heart"></i>
+          </button>
         </form>
-    </h5>
-        {% if recipe['image'] %}
-        <img src="{{recipe['image']}}" class="card-img" alt="No description available." width="240px" height="150px">
-        {% else %}
-        <img src="https://spoonacular.com/recipeImages/{{recipe['id']}}-240x150.{{recipe['imageType']}}" alt="No description available." width="240px" height="150px">
-        {% endif %}
-        <div class="card-footer">
-          <a href="/recipes/{{recipe['id']}}" class="card-link text-white">Go to Recipe</a>
-        </div>
+      </h5>
+      {% if recipe['image'] %}
+      <img
+        src="{{recipe['image']}}"
+        class="card-img"
+        alt="No description available."
+        width="150px"
+        height="150px"
+      />
+      {% else %}
+      <img
+        src="https://spoonacular.com/recipeImages/{{recipe['id']}}-240x150.{{recipe['imageType']}}"
+        alt="No description available."
+        width="150px"
+        height="150px"
+      />
+      {% endif %}
+      <div class="card-footer">
+        <a
+          href="/recipes/{{recipe['id']}}"
+          class="card-link text-white"
+          >Go to Recipe</a
+        >
       </div>
     </div>
-    <br>
-      {% endfor %}
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

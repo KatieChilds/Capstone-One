@@ -4,24 +4,27 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Recipe, Preference
 from forms import RegisterForm, LoginForm, ByIngredientsForm, ComplexSearchForm, UpdateUserForm, UpdatePreferencesForm
-from secret import API_KEY
+# from secret import API_KEY, key
 import json
+import os
 
 
 CURR_USER_KEY = 'curr_user'
 API_BASE_URL = 'https://api.spoonacular.com/'
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///fridge_raiders'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL', 'postgresql:///fridge_raiders')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config['API_KEY'] = os.environ.get('API_KEY')
 
 connect_db(app)
 app.app_context().push()
 db.create_all()
 
-app.config['SECRET_KEY'] = "oh-so-very-very-secret"
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 debug = DebugToolbarExtension(app)
 

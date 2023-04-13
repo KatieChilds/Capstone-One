@@ -11,20 +11,23 @@ Search Form{% endblock %} {% block content %}
   recipe box
 </h4>
 <br />
+<br />
 <div class="container text-center">
   <div class="row row-cols-2">
     <div class="col">
       <form method="POST">
-        {{form.hidden_tag()}} {{form.ingredients.label}}
+        {{form.hidden_tag()}}
+        <b>{{form.ingredients.label}}</b>
         {{form.ingredients(class_="form-control")}}
-        {{form.ranking.label}} {% for subfield in
-        form.ranking %}
+        <br /><b>{{form.ranking.label}}</b>
+        <br />
+        {% for subfield in form.ranking %}
         <tr>
           <td>{{subfield}}</td>
           <td>{{subfield.label}}</td>
         </tr>
-        {% endfor %}
-        <br />{{form.number.label}}
+        <br />
+        {% endfor %} <br /><b>{{form.number.label}}</b>
         {{form.number(class_="form-control")}} {% for field
         in form if field.widget.input_type != 'hidden' %} {%
         for error in field.errors %}

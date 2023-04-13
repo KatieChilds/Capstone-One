@@ -3,28 +3,40 @@ Search{% endblock %} {% block content %}
 <h2 class="text-center">
   Your Recipes from
   <span class="text-primary"
-    >Fridge Raiders <i class="fa-solid fa-carrot text-danger"></i
+    >Fridge Raiders
+    <i class="fa-solid fa-carrot text-danger"></i
   ></span>
 </h2>
-<br>
+<br />
 <div class="container text-center">
-  <div class="row row-cols-md-3">
-{% for recipe in recipes %}
-<div class="card text-white bg-primary col w-25 h-25">
-    <h5 class="card-header text-wrap">{{recipe['title']}}</h5>
-    {% if recipe['image'] %}
-    <img src="{{recipe['image']}}" class="card-img" alt="No description available.">
-    {% else %}
-    <img src="https://spoonacular.com/recipeImages/{{recipe['id']}}-240x150.{{recipe['imageType']}}" alt="No description available.">
-    {% endif %}
-    <div class="card-footer">
-      <a href="/recipes/{{recipe['id']}}" class="card-link text-white">Go to Recipe</a>
+  <div class="d-flex flex-wrap">
+    {% for recipe in recipes %}
+    <div class="card text-white bg-primary m-3 w-25 h-25">
+      <h5 class="card-header text-wrap">
+        {{recipe['title']}}
+      </h5>
+      {% if recipe['image'] %}
+      <img
+        src="{{recipe['image']}}"
+        class="card-img"
+        alt="No description available."
+      />
+      {% else %}
+      <img
+        src="https://spoonacular.com/recipeImages/{{recipe['id']}}-240x150.{{recipe['imageType']}}"
+        alt="No description available."
+      />
+      {% endif %}
+      <div class="card-footer">
+        <a
+          href="/recipes/{{recipe['id']}}"
+          class="card-link text-white"
+          >Go to Recipe</a
+        >
+      </div>
     </div>
+    {% endfor %}
   </div>
-</div>
-<br>
-  {% endfor %}
-</div>
 </div>
 
 {% endblock %}
