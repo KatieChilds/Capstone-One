@@ -14,11 +14,13 @@ API_BASE_URL = 'https://api.spoonacular.com/'
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    'DATABASE_URL', 'postgresql:///fridge_raiders')
+    'DATABASE_URL').replace("://", "ql://", 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['API_KEY'] = os.environ.get('API_KEY')
+
+API_KEY = os.environ.get('API_KEY')
 
 connect_db(app)
 app.app_context().push()
@@ -131,6 +133,7 @@ def show_user_profile(user_id):
         Preference.user_id == user_id).first()
     if user_preferences != None:
         preferences = json.loads(user_preferences.preferences)
+
     else:
         preferences = {"Notice": "No saved preferences."}
     return render_template('users/profile.html', user=user, preferences=preferences)

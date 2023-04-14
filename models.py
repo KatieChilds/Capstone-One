@@ -3,10 +3,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 import requests
-from secret import API_KEY
+import os
 
 bcrypt = Bcrypt()
 db = SQLAlchemy()
+API_KEY = os.environ.get('API_KEY')
 
 
 class User(db.Model):
