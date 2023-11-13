@@ -14,7 +14,7 @@ Recipe Details{% endblock %} {% block content %}
 </p>
 <div class="card border-primary">
   <div class="card-body">
-    <p>{{recipe['summary']}}</p>
+    <p>{{recipe['summary'] | safe}}</p>
   </div>
 </div>
 <br />
